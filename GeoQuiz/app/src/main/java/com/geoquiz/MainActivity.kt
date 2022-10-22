@@ -1,6 +1,7 @@
 package com.geoquiz
 
 import android.app.Activity
+import android.app.ActivityOptions
 import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
@@ -14,6 +15,7 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityOptionsCompat
 import androidx.lifecycle.ViewModelProvider
 import com.geoquiz.viewModel.QuizViewModel
 
@@ -129,13 +131,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         cheatBtn.setOnClickListener {
-//            val intent = Intent(this, CheatActivity::class.java)
-
             var currentAnswer = quizViewModel.getCurrentAnswer()
             var intent = CheatActivity.newIntent(this@MainActivity, currentAnswer)
-//            startActivity(intent)
+            // 動畫
+            val option = ActivityOptionsCompat.makeClipRevealAnimation(it, 0, 0, it.width, it.height)
+
             // 跳轉頁面
-            launcher.launch(intent)
+            launcher.launch(intent, option)
+//            launcher.launch(intent)
         }
     }
 
