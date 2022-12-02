@@ -7,10 +7,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.ListAdapter
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.criminalintent.viewModel.CrimeListViewModel
@@ -81,11 +83,11 @@ class CrimeListFragment : Fragment() {
         crimeListViewModel.crimeListLiveData.observe(
             viewLifecycleOwner,
             Observer { crimes ->
-            crimes.let {
-                Log.i(TAG, "Get crimes ${crimes.size}")
-                updateUI(crimes)
-            }
-        })
+                crimes.let {
+                    Log.i(TAG, "Get crimes ${crimes.size}")
+                    updateUI(crimes)
+                }
+            })
 
         // 先嘗試塞入一筆資料
 //        var testCrime = Crime()
@@ -104,7 +106,8 @@ class CrimeListFragment : Fragment() {
      * RecyclerView 只會創建 ViewHolder
      * ViewHolder 裡面去包含 itemView
      */
-    private inner class CrimeHolder(view: View) : RecyclerView.ViewHolder(view), View.OnClickListener {
+    private inner class CrimeHolder(view: View) : RecyclerView.ViewHolder(view),
+        View.OnClickListener {
 
         private lateinit var crime: Crime
 
@@ -117,11 +120,13 @@ class CrimeListFragment : Fragment() {
             itemView.setOnClickListener(this)
         }
 
-        // 綁綁訂的工作放在 Holder 內處理
+        // 綁訂的工作放在 Holder 內處理
         fun bind(crime: Crime) {
             this.crime = crime
             titleTextView.text = crime.title
-            dateTextView.text = DateFormat.getDateInstance(DateFormat.FULL, Locale.TAIWAN).format(crime.date).toString()
+            dateTextView.text =
+                DateFormat.getDateInstance(DateFormat.FULL, Locale.TAIWAN).format(crime.date)
+                    .toString()
             solvedImgView.visibility = if (crime.isSolved) View.VISIBLE else View.GONE
         }
 
@@ -136,7 +141,9 @@ class CrimeListFragment : Fragment() {
      * 2. 綁定 ViewHolder 至數據層
      */
     // class 建構子這邊用 var or val 讓建構子外也可以使用該變數
-    private inner class CrimeAdapter(var crimes: List<Crime>) : RecyclerView.Adapter<CrimeHolder>() {
+    // private inner class CrimeAdapter(var crimes: List<Crime>) : RecyclerView.Adapter<CrimeHolder>() {
+    private inner class CrimeAdapter(var crimes: List<Crime>) :
+        androidx.recyclerview.widget.ListAdapter<Crime, CrimeHolder>(CrimeDiffCallBack()) {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CrimeHolder {
             val view = layoutInflater.inflate(R.layout.list_item_crime, parent, false)
             return CrimeHolder(view)
@@ -150,6 +157,22 @@ class CrimeListFragment : Fragment() {
         override fun getItemCount(): Int {
             return crimes.size
         }
+    }
+
+    /**
+     * crime item callBack
+     * 用來判斷兩個物件是否相同，若不相同才去更新畫面
+     */
+    private inner class CrimeDiffCallBack() : DiffUtil.ItemCallback<Crime>() {
+        override fun areItemsTheSame(oldItem: Crime, newItem: Crime): Boolean {
+            return oldItem.id == newItem.id
+        }
+
+        override fun areContentsTheSame(oldItem: Crime, newItem: Crime): Boolean {
+            return oldItem.id == newItem.id && oldItem.isSolved == newItem.isSolved
+                    && oldItem.title == newItem.title && newItem.date == oldItem.date
+        }
+
     }
 
     /**
