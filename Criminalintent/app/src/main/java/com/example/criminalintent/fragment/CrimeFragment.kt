@@ -11,12 +11,14 @@ import android.widget.CheckBox
 import android.widget.CompoundButton
 import android.widget.EditText
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.criminalintent.R
 import com.example.criminalintent.data.Crime
 import com.example.criminalintent.viewModel.CrimeDetailViewModel
 import com.example.criminalintent.viewModel.CrimeListViewModel
+import java.util.Date
 import java.util.UUID
 
 class CrimeFragment : Fragment() {
@@ -24,6 +26,9 @@ class CrimeFragment : Fragment() {
     companion object {
 
         private const val ARG_CRIME_ID = "crime_id"
+        private const val DATE_DIALOG = "date_dialog"
+        const val DATE_KEY = "date_key"
+        const val DATE_RESULT = "date_result"
 
         fun newInstance(crimeId: UUID): CrimeFragment {
             val args = Bundle().apply {
@@ -74,7 +79,7 @@ class CrimeFragment : Fragment() {
         dateButton.apply {
             this.text = crimeData.date.toString()
             // 這邊暫時不讓用戶點擊
-            this.isEnabled = false
+//            this.isEnabled = false
         }
 
         return view
@@ -108,6 +113,23 @@ class CrimeFragment : Fragment() {
             // 這邊用 lambda 寫法取代下面那個方式
             this.setOnCheckedChangeListener { _, isChecked ->
                 crimeData.isSolved = isChecked
+            }
+        }
+
+        dateButton.setOnClickListener {
+            this@CrimeFragment.parentFragmentManager.setFragmentResultListener(
+                DATE_KEY,
+                this@CrimeFragment
+            ) { _, bundle ->
+                val result = bundle.getSerializable(DATE_RESULT) as Date
+                crimeData.date = result
+
+                updateUI()
+            }
+            // @ -> 是指定的意思
+            // parentFragmentManager 是用 parent 的 fragmentManager
+            DatePickerFragment.newInstance(crimeData.date).apply {
+                show(this@CrimeFragment.parentFragmentManager, DATE_DIALOG)
             }
         }
 
