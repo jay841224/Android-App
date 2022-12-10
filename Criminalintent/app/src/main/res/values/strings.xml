@@ -7,4 +7,5 @@
     <string name="crime_title">Crime Title</string>
     <string name="crime_date">Crime Date</string>
     <string name="crime_img">犯罪圖</string>
+    <string name="new_crime"></string>
 </resources>
